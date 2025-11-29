@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import CanvasEditor from "../components/CanvasEditor";
 import Sidebar from "../components/Sidebar";
 import PropertiesPanel from "../components/PropertiesPanel";
-import { saveTemplate, listTemplates } from "../api/templates";
+import { saveTemplate, listTemplates, generateCode } from "../api/templates";
 import "../styles.css";
 
 export default function EditorPage() {
@@ -27,20 +27,10 @@ export default function EditorPage() {
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [showSavedModal, setShowSavedModal] = useState(false);
 
-  function updateComponent(updatedComp) {
-    const comps = template.components.map(c => c.id === updatedComp.id ? updatedComp : c);
-    setTemplate(t => ({ ...t, components: comps }));
-  }
-
-  function addComponent(component) {
-    setTemplate(t => ({ ...t, components: [...t.components, component] }));
-    setSelectedId(component.id);
-  }
-
-  function deleteComponent(id) {
-    setTemplate(t => ({ ...t, components: t.components.filter(c => c.id !== id) }));
-    setSelectedId(null);
-  }
+  // NEW: Framework selection + generated code
+  const [framework, setFramework] = useState("odoo");
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   async function handleSave() {
     try {
@@ -61,15 +51,21 @@ export default function EditorPage() {
     }
   }
 
-  async function fetchSavedTemplates() {
+  async function handleGenerate() {
     try {
-      const res = await listTemplates(template.folder_id); // API call to fetch templates
-      setSavedTemplates(res);
-      setShowSavedModal(true);
+      const res = await generateCode(template.template_id, framework);
+      setGeneratedCode(res.code);
+      console.log("LLM Response:", res);
+      setShowCodeModal(true);
     } catch (err) {
-      console.error(err);
-      alert("Failed to load templates: " + err.message);
+      alert("Code generation failed: " + err.message);
     }
+  }
+
+  async function fetchSavedTemplates() {
+    const res = await listTemplates(template.folder_id);
+    setSavedTemplates(res);
+    setShowSavedModal(true);
   }
 
   function loadTemplate(tpl) {
@@ -79,7 +75,11 @@ export default function EditorPage() {
 
   return (
     <div className="app-shell">
-      <Sidebar onAdd={addComponent} />
+      <Sidebar onAdd={(c) => {
+        setTemplate(t => ({ ...t, components: [...t.components, c] }));
+        setSelectedId(c.id);
+      }}/>
+
       <div className="main-col">
         <div className="top-bar">
           <input
@@ -87,9 +87,30 @@ export default function EditorPage() {
             value={template.template_name}
             onChange={e => setTemplate({ ...template, template_name: e.target.value })}
           />
+
+          {/* NEW Framework selection */}
+          <select
+            className="framework-select"
+            value={framework}
+            onChange={e => setFramework(e.target.value)}
+          >
+            <option value="odoo">Odoo</option>
+            <option value="erpnext">ERPNext</option>
+            <option value="sap_ui5">SAP UI5</option>
+            <option value="shopify">Shopify</option>
+          </select>
+
           <div>
             <button className="btn" onClick={handleSave}>Save Template</button>
-            <button className="btn ghost" onClick={fetchSavedTemplates}>Saved Templates</button>
+
+            {/* NEW Generate Code */}
+            <button className="btn accent" onClick={handleGenerate}>
+              Generate Code
+            </button>
+
+            <button className="btn ghost" onClick={fetchSavedTemplates}>
+              Saved Templates
+            </button>
           </div>
         </div>
 
@@ -105,28 +126,57 @@ export default function EditorPage() {
         template={template}
         setTemplate={setTemplate}
         selectedId={selectedId}
-        updateComponent={updateComponent}
-        deleteComponent={deleteComponent}
+        updateComponent={updated => {
+          setTemplate(t => ({
+            ...t,
+            components: t.components.map(c => c.id === updated.id ? updated : c)
+          }));
+        }}
+        deleteComponent={id => {
+          setTemplate(t => ({
+            ...t,
+            components: t.components.filter(c => c.id !== id)
+          }));
+          setSelectedId(null);
+        }}
       />
 
-      {/* Modal for saved templates */}
+      {/* Saved template selection modal */}
       {showSavedModal && (
         <div className="modal-overlay" onClick={() => setShowSavedModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h3>Saved Templates</h3>
             <div className="template-cards">
               {savedTemplates.map(tpl => (
-                <div key={tpl.id} className="template-card" onClick={() => loadTemplate(tpl)}>
+                <div key={tpl.id} className="template-card"
+                     onClick={() => loadTemplate(tpl)}>
                   <h4>{tpl.template_name}</h4>
                   <p>Version: {tpl.version}</p>
-                  <small>Created: {new Date(tpl.created_at).toLocaleString()}</small>
+                  <small>{tpl.created_at}</small>
                 </div>
               ))}
             </div>
-            <button className="btn ghost" onClick={() => setShowSavedModal(false)}>Close</button>
           </div>
         </div>
       )}
+
+      {/* NEW Code View Modal */}
+      {showCodeModal && (
+        <div className="modal-overlay" onClick={() => setShowCodeModal(false)}>
+          <div className="modal-content wide" onClick={(e) => e.stopPropagation()}>
+            <h3>Generated Code</h3>
+            <textarea
+              style={{ width: "100%", height: "300px" }}
+              readOnly
+              value={generatedCode}
+            />
+            <button className="btn ghost" onClick={() => setShowCodeModal(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

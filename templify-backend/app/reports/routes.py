@@ -1,36 +1,11 @@
-# from fastapi import APIRouter, Depends
-# from sqlalchemy.orm import Session
-# from app.database.connection import SessionLocal
-# from .models import ReportTemplate
-# from .schemas import TemplateCreate, TemplateResponse
-#
-# router = APIRouter(prefix="/templates", tags=["Templates"])
-#
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-#
-# @router.post("/", response_model=TemplateResponse)
-# def create_template(data: TemplateCreate, db: Session = Depends(get_db)):
-#     template = ReportTemplate(**data.dict())
-#     db.add(template)
-#     db.commit()
-#     db.refresh(template)
-#     return template
-#
-# @router.get("/{template_id}", response_model=TemplateResponse)
-# def get_template(template_id: str, db: Session = Depends(get_db)):
-#     return db.query(ReportTemplate).filter(ReportTemplate.template_id == template_id).first()
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database.connection import SessionLocal
 from .models import ReportTemplate
 from .schemas import TemplateCreate, TemplateResponse
 from typing import List
+from pydantic import BaseModel
+from .gemini_generator import  generate_code
 import uuid
 
 router = APIRouter(prefix="/templates", tags=["Templates"])
@@ -41,6 +16,32 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class GenerateResponse(BaseModel):
+    template_id: str
+    target: str
+    code: str
+
+
+@router.post("/{template_id}/generate", response_model=GenerateResponse)
+def generate_from_saved_template(
+        template_id: str,
+        target: str = Query(..., description="odoo | erpnext | sap_ui5 | shopify"),
+        db: Session = Depends(get_db),
+):
+    tpl = db.query(ReportTemplate).filter(ReportTemplate.template_id == template_id).first()
+    if not tpl:
+        raise HTTPException(404, "template not found")
+
+    layout = tpl.layout_json
+    meta = tpl.meta or {}
+
+    # Call LLM (Gemini)
+    code = generate_code(target, layout, meta)
+
+    return GenerateResponse(template_id=template_id, target=target, code=code)
+
 
 @router.post("/", response_model=TemplateResponse)
 def create_template(data: TemplateCreate, db: Session = Depends(get_db)):
@@ -116,3 +117,22 @@ def list_folders(db: Session = Depends(get_db)):
     # simple list of folders with counts
     rows = db.query(ReportTemplate.folder_id, ReportTemplate.folder_name).distinct().all()
     return [{"folder_id": r[0], "folder_name": r[1]} for r in rows]
+
+
+@router.post("/{template_id}/generate", response_model=GenerateResponse)
+def generate_from_saved_template(
+        template_id: str,
+        target: str = Query(..., description="odoo | erpnext | sap_ui5 | shopify"),
+        db: Session = Depends(get_db),
+):
+    tpl = db.query(ReportTemplate).filter(ReportTemplate.template_id == template_id).first()
+    print(tpl)
+    if not tpl:
+        raise HTTPException(404, "template not found")
+
+    layout = tpl.layout_json
+    meta = tpl.meta or {}
+
+    # Call LLM (Gemini)
+    code = generate_code(layout, target, meta)
+    return GenerateResponse(template_id=template_id, target=target, code=code)
