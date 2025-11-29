@@ -1,0 +1,164 @@
+{
+  "template_id": "template_1764369193789",
+  "template_name": "Untitled Template 1",
+  "version": "1.0",
+  "created_at": "2025-11-28T22:33:13.789Z",
+  "folder_id": "root",
+  "folder_name": "My Templates",
+  "meta": {},
+  "page_settings": {
+    "size": "A4",
+    "orientation": "portrait",
+    "margins": {
+      "top": 20,
+      "bottom": 20,
+      "left": 15,
+      "right": 15
+    }
+  },
+  "components": [
+    {
+      "id": "image_ygiir71",
+      "type": "image",
+      "position": {
+        "x": 20,
+        "y": 70
+      },
+      "size": {
+        "width": 120,
+        "height": 60
+      },
+      "properties": {
+        "src": "",
+        "alt": "Image"
+      },
+      "data_binding": {}
+    },
+    {
+      "id": "text_dg7zbqj",
+      "type": "text",
+      "position": {
+        "x": 20,
+        "y": 20
+      },
+      "size": {
+        "width": 300,
+        "height": 30
+      },
+      "properties": {
+        "content": "New text",
+        "font_size": 14,
+        "font_weight": "normal",
+        "color": "#000000",
+        "alignment": "left"
+      },
+      "data_binding": {}
+    },
+    {
+      "id": "divider_jbyp1pq",
+      "type": "divider",
+      "position": {
+        "x": 20,
+        "y": 200
+      },
+      "size": {
+        "width": 555,
+        "height": 2
+      },
+      "properties": {}
+    },
+    {
+      "id": "table_k5juaj7",
+      "type": "table",
+      "position": {
+        "x": 32,
+        "y": 530
+      },
+      "size": {
+        "width": 555,
+        "height": 200
+      },
+      "properties": {
+        "border": true,
+        "columns": [
+          {
+            "id": "col_1",
+            "header": "Item",
+            "field": "product_name",
+            "width": "50%"
+          },
+          {
+            "id": "col_2",
+            "header": "Qty",
+            "field": "quantity",
+            "width": "25%"
+          },
+          {
+            "id": "col_3",
+            "header": "Total",
+            "field": "total",
+            "width": "25%"
+          }
+        ],
+        "rows": [
+          {
+            "product_name": "",
+            "quantity": "",
+            "total": ""
+          }
+        ]
+      },
+      "data_binding": {
+        "field": "items",
+        "type": "array"
+      }
+    },
+    {
+      "id": "table_i2n11es",
+      "type": "table",
+      "position": {
+        "x": 20,
+        "y": 150
+      },
+      "size": {
+        "width": 555,
+        "height": 200
+      },
+      "properties": {
+        "border": true,
+        "columns": [
+          {
+            "id": "col_1",
+            "header": "Item",
+            "field": "product_name",
+            "width": "50%"
+          },
+          {
+            "id": "col_2",
+            "header": "Qty",
+            "field": "quantity",
+            "width": "25%"
+          },
+          {
+            "id": "col_3",
+            "header": "Total",
+            "field": "total",
+            "width": "25%"
+          }
+        ],
+        "rows": [
+          {
+            "product_name": "",
+            "quantity": "",
+            "total": ""
+          }
+        ]
+      },
+      "data_binding": {
+        "field": "items",
+        "type": "array"
+      }
+    }
+  ],
+  "data_schema": {}
+}

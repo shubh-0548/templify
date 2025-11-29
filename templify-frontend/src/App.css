@@ -1,0 +1,47 @@
+.app-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 300px;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+.sidebar {
+  background: #1f1f2e;
+  color: white;
+  padding: 16px;
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  cursor: pointer;
+  background: #4b64ff;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.canvas {
+  position: relative;
+  background: #f8f9fc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  padding: 20px;
+}
+
+.canvas-item {
+  position: absolute;
+  padding: 6px 10px;
+  background: white;
+  border: 1px dashed #777;
+  border-radius: 4px;
+  cursor: move;
+}
+
+.meta-preview {
+  background: #fff;
+  padding: 16px;
+  overflow-y: auto;
+  border-left: 1px solid #ccc;
+}
